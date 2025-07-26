@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VitalCoach 🥗 - Tu Nutricionista Virtual</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 500px;
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+      color: white;
+      padding: 25px;
+      text-align: center;
+      position: relative;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+
+    .header p {
+      opacity: 0.9;
+      font-size: 14px;
+    }
+
+    .status {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      width: 12px;
+      height: 12px;
+      background: #4CAF50;
+      border-radius: 50%;
+      border: 2px solid white;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.2); opacity: 0.7; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    #chat {
+      height: 400px;
+      overflow-y: auto;
+      padding: 20px;
+      background: #f8f9fa;
+    }
+
+    .message {
+      margin-bottom: 15px;
+      animation: fadeIn 0.3s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .user-message {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .bot-message {
+      display: flex;
+      justify-content: flex-start;
+    }
+
+    .message-bubble {
+      max-width: 80%;
+      padding: 12px 16px;
+      border-radius: 18px;
+      font-size: 14px;
+      line-height: 1.4;
+      word-wrap: break-word;
+    }
+
+    .user-message .message-bubble {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .bot-message .message-bubble {
+      background: white;
+      color: #333;
+      border: 1px solid #e1e8ed;
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .typing {
+      display: none;
+      text-align: center;
+      padding: 10px;
+      font-style: italic;
+      color: #666;
+      font-size: 14px;
+    }
+
+    .typing::after {
+      content: '';
+      animation: dots 1.5s infinite;
+    }
+
+    @keyframes dots {
+      0%, 20% { content: ''; }
+      40% { content: '.'; }
+      60% { content: '..'; }
+      80%, 100% { content: '...'; }
+    }
+
+    .input-section {
+      padding: 20px;
+      background: white;
+      border-top: 1px solid #e1e8ed;
+    }
+
+    .input-container {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+
+    #messageInput {
+      flex: 1;
+      padding: 12px 16px;
+      border: 2px solid #e1e8ed;
+      border-radius: 20px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.3s ease;
+      resize: none;
+      min-height: 20px;
+      max-height: 100px;
+      font-family: inherit;
+    }
+
+    #messageInput:focus {
+      border-color: #4CAF50;
+    }
+
+    #sendButton {
+      background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 45px;
+      height: 45px;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    #sendButton:hover {
+      transform: scale(1.05);
+    }
+
+    #sendButton:active {
+      transform: scale(0.95);
+    }
+
+    #sendButton:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 15px;
+    }
+
+    .suggestion-chip {
+      background: #f1f3f4;
+      border: 1px solid #dadce0;
+      border-radius: 16px;
+      padding: 8px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .suggestion-chip:hover {
+      background: #e8f5e8;
+      border-color: #4CAF50;
+    }
+
+    .welcome-message {
+      text-align: center;
+      padding: 30px 20px;
+      color: #666;
+    }
+
+    .welcome-message h3 {
+      color: #4CAF50;
+      margin-bottom: 10px;
+    }
+
+    .emoji {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+
+    .error-message {
+      background: #ffebee;
+      border: 1px solid #e57373;
+      border-radius: 8px;
+      padding: 10px;
+      margin: 10px 0;
+      color: #c62828;
+      font-size: 12px;
+    }
+
+    /* Scrollbar personalizado */
+    #chat::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    #chat::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    #chat::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 3px;
+    }
+
+    #chat::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        margin: 10px;
+        border-radius: 15px;
+      }
+      
+      #chat {
+        height: 350px;
+      }
+      
+      .header h1 {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="status"></div>
+      <h1>VitalCoach 🥗</h1>
+      <p>Tu nutricionista virtual personalizado</p>
+    </div>
+
+    <div id="chat">
+      <div class="welcome-message">
+        <div class="emoji">🍎🥕🥬</div>
+        <h3>¡Hola! Soy VitalCoach</h3>
+        <p>Estoy aquí para ayudarte con tus dudas sobre nutrición, planes alimenticios y hábitos saludables.</p>
+        
+        <div class="suggestions">
+          <div class="suggestion-chip" onclick="sendSuggestion('Hola')">
+            👋 Hola (funciona)
+          </div>
+          <div class="suggestion-chip" onclick="sendSuggestion('¿Qué debería desayunar para tener más energía?')">
+            🌅 Desayuno energético
+          </div>
+          <div class="suggestion-chip" onclick="sendSuggestion('¿Cómo puedo perder peso de forma saludable?')">
+            ⚖️ Perder peso
+          </div>
+          <div class="suggestion-chip" onclick="sendSuggestion('Help')">
+            🔧 Test Help
+          </div>
+          <div class="suggestion-chip" onclick="sendSuggestion('Test')">
+            🧪 Test simple
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="typing" id="typing">
+      VitalCoach está escribiendo
+    </div>
+
+    <div class="input-section">
+      <div class="input-container">
+        <textarea 
+          id="messageInput" 
+          placeholder="Escribe tu pregunta sobre nutrición..."
+          rows="1"
+        ></textarea>
+        <button id="testButton" onclick="testCurrentMessage()" style="
+          background: #ffa500;
+          color: white;
+          border: none;
+          border-radius: 50%;
+          width: 35px;
+          height: 35px;
+          cursor: pointer;
+          font-size: 12px;
+          margin-right: 5px;
+        " title="Test directo (bypass rate limit)">
+          🧪
+        </button>
+        <button id="clearHistory" onclick="clearConversation()" style="
+          background: #ff6b6b;
+          color: white;
+          border: none;
+          border-radius: 50%;
+          width: 35px;
+          height: 35px;
+          cursor: pointer;
+          font-size: 14px;
+          margin-right: 5px;
+        " title="Limpiar conversación">
+          🗑️
+        </button>
+        <button id="sendButton" onclick="sendMessage()">
+          ➤
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Configuración
+    const N8N_WEBHOOK_URL = "http://localhost:5678/webhook/vitalcoach";
+    
+    // Estado de conversación
+    let conversationHistory = [];
+    
+    // Referencias a elementos DOM
+    const chat = document.getElementById('chat');
+    const messageInput = document.getElementById('messageInput');
+    const sendButton = document.getElementById('sendButton');
+    const typing = document.getElementById('typing');
+    
+    // Variable para prevenir múltiples envíos y controlar rate limiting
+    let isProcessing = false;
+    let lastRequestTime = 0;
+    const MIN_REQUEST_INTERVAL = 2000; // 2 segundos entre requests
+
+    // Función para cargar el historial al iniciar
+    function loadConversationHistory() {
+      try {
+        const saved = localStorage.getItem('vitalcoach_conversation');
+        if (saved) {
+          conversationHistory = JSON.parse(saved);
+        }
+      } catch (error) {
+        console.warn('Error al cargar historial:', error);
+        conversationHistory = [];
+        localStorage.removeItem('vitalcoach_conversation');
+      }
+    }
+
+    // Auto-resize del textarea
+    messageInput.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+    });
+
+    // Enviar mensaje con Enter (pero permitir Shift+Enter para nueva línea)
+    messageInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // Función de test que bypasea rate limiting
+    async function testMessage(testMsg) {
+      console.log(`=== TESTING MESSAGE: "${testMsg}" ===`);
+      
+      try {
+        const response = await fetch(N8N_WEBHOOK_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ 
+            mensaje: testMsg,
+            timestamp: new Date().toISOString(),
+            user_id: getUserId() + '_test',
+            historial: [] // Sin historial para el test
+          }),
+        });
+        
+        console.log('Test Response Status:', response.status);
+        const text = await response.text();
+        console.log('Test Response Text:', text);
+        
+        return { status: response.status, text: text };
+      } catch (error) {
+        console.error('Test Error:', error);
+        return { error: error.message };
+      }
+    }
+
+    // Función para enviar sugerencias
+    function sendSuggestion(text) {
+      messageInput.value = text;
+      sendMessage();
+    }
+
+    // Función principal para enviar mensajes
+    async function sendMessage() {
+      const message = messageInput.value.trim();
+      if (!message || isProcessing) return;
+      
+      // Verificar rate limiting
+      const now = Date.now();
+      const timeSinceLastRequest = now - lastRequestTime;
+      
+      if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
+        const waitTime = MIN_REQUEST_INTERVAL - timeSinceLastRequest;
+        addMessage(`Por favor espera ${Math.ceil(waitTime/1000)} segundos antes del próximo mensaje para evitar límites de API. ⏱️`, 'bot');
+        return;
+      }
+      
+      // Prevenir múltiples ejecuciones
+      isProcessing = true;
+      lastRequestTime = now;
+
+      // Limpiar welcome message si existe
+      const welcomeMsg = document.querySelector('.welcome-message');
+      if (welcomeMsg) {
+        welcomeMsg.remove();
+      }
+
+      // Agregar mensaje del usuario
+      addMessage(message, 'user');
+      
+      // Limpiar input y deshabilitar botón
+      messageInput.value = '';
+      messageInput.style.height = 'auto';
+      sendButton.disabled = true;
+      
+      // Mostrar indicador de escritura
+      typing.style.display = 'block';
+
+      try {
+        console.log('Enviando mensaje a n8n:', message);
+        
+        // Enviar a n8n con historial de conversación
+        const payload = { 
+          mensaje: message,
+          timestamp: new Date().toISOString(),
+          user_id: getUserId(),
+          historial: conversationHistory.slice(-4) // Solo últimas 4 interacciones (2 pares)
+        };
+        
+        console.log('Payload:', payload);
+        
+        const response = await fetch(N8N_WEBHOOK_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        // Primero obtener el texto de la respuesta
+        const responseText = await response.text();
+        console.log('=== DEBUGGING RESPUESTA ===');
+        console.log('Response status:', response.status);
+        console.log('Response statusText:', response.statusText);
+        console.log('Response ok:', response.ok);
+        console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+        console.log('Response url:', response.url);
+        console.log('Response text completo:', responseText);
+        console.log('Response length:', responseText.length);
+        console.log('Response type:', typeof responseText);
+        console.log('Response first 100 chars:', responseText.substring(0, 100));
+        console.log('==========================');
+        
+        // Ocultar indicador de escritura
+        typing.style.display = 'none';
+        
+        let botResponse = '';
+        let data = null; // Declarar la variable data aquí
+        
+        // Intentar parsear como JSON
+        try {
+          // Limpiar caracteres de escape que puede enviar n8n
+          let cleanedResponse = responseText;
+          
+          // Si empieza con { pero tiene caracteres de escape, intentar limpiar
+          if (responseText.includes('\\"') || responseText.includes('\\n')) {
+            console.log('Detectados caracteres de escape, limpiando...');
+            // Intentar extraer el JSON real
+            try {
+              // Si es un string que contiene JSON, parsearlo dos veces
+              const firstParse = JSON.parse(responseText);
+              if (typeof firstParse === 'string') {
+                cleanedResponse = firstParse;
+                console.log('JSON anidado detectado, extrayendo:', cleanedResponse);
+              }
+            } catch (e) {
+              console.log('No es JSON anidado, continuando con limpieza manual');
+              // Limpiar manualmente los escapes
+              cleanedResponse = responseText
+                .replace(/\\"/g, '"')
+                .replace(/\\n/g, '\n')
+                .replace(/^\s*"/, '')  // Remover comilla inicial
+                .replace(/"\s*$/, ''); // Remover comilla final
+            }
+          }
+          
+          data = JSON.parse(cleanedResponse);
+          console.log("Respuesta parseada de n8n:", data);
+          
+          // Verificar si hay un objeto anidado (problema de n8n)
+          if (data && typeof data === 'object') {
+            // Si tiene una key que parece "[object Object]", extraer el valor
+            const keys = Object.keys(data);
+            if (keys.length === 1 && keys[0].includes('object')) {
+              console.log("Detectado objeto anidado, extrayendo...");
+              data = data[keys[0]];
+              console.log("Datos extraídos:", data);
+            }
+          }
+          
+          // Tu n8n devuelve: {"respuesta": "texto", "success": true, "timestamp": "..."}
+          if (data && data.respuesta) {
+            botResponse = String(data.respuesta).trim();
+            console.log("Respuesta extraída exitosamente:");
+            console.log("Texto completo:", botResponse);
+            console.log("Longitud:", botResponse.length);
+          } else if (data && data.message) {
+            botResponse = data.message;
+          } else if (data && data.response) {
+            botResponse = data.response;
+          } else if (data && typeof data === 'object') {
+            // Si es un objeto, usar el primer valor string que encontremos
+            for (const key in data) {
+              if (typeof data[key] === 'string' && data[key].trim()) {
+                botResponse = data[key];
+                break;
+              }
+            }
+          } else {
+            console.error("Estructura de respuesta inesperada:", data);
+            botResponse = "Recibí una respuesta válida pero no pude procesarla correctamente.";
+          }
+        } catch (jsonError) {
+          console.log('No es JSON válido, usando como texto plano:', jsonError);
+          // Si no es JSON válido, usar el texto como respuesta directa
+          botResponse = responseText;
+        }
+        
+        console.log('=== VALIDACIÓN FINAL ===');
+        console.log('botResponse existe:', !!botResponse);
+        console.log('botResponse tipo:', typeof botResponse);
+        console.log('botResponse length:', botResponse ? botResponse.length : 'N/A');
+        console.log('botResponse primeros 50 chars:', botResponse ? botResponse.substring(0, 50) : 'N/A');
+        console.log('botResponse está vacío?:', !botResponse || botResponse.trim() === '');
+        console.log('============================');
+        
+        // Verificar que la respuesta no esté vacía
+        if (!botResponse || botResponse.trim() === '') {
+          console.error('❌ Respuesta vacía recibida');
+          console.log('ResponseText original:', responseText.substring(0, 200) + '...');
+          console.log('Data parseada:', data);
+          botResponse = "No pude procesar la respuesta. Por favor, intenta reformular tu pregunta.";
+        } else if (botResponse.length < 10) {
+          console.warn('⚠️ Respuesta muy corta recibida:', botResponse);
+          console.log('ResponseText original:', responseText);
+        } else {
+          console.log('✅ Respuesta válida recibida, longitud:', botResponse.length);
+        }
+        
+        console.log('=== RESPUESTA FINAL ===');
+        console.log('Bot response:', botResponse);
+        console.log('Length:', botResponse.length);
+        console.log('======================');
+        
+        // Simular delay de escritura más realista
+        setTimeout(() => {
+          addMessage(botResponse, 'bot');
+          
+          // Guardar en historial (solo si la respuesta es exitosa)
+          if (botResponse && !botResponse.includes('error') && !botResponse.includes('problema')) {
+            conversationHistory.push(
+              { role: 'user', content: message },
+              { role: 'assistant', content: botResponse }
+            );
+            
+            // Mantener solo las últimas 6 interacciones (3 pares pregunta-respuesta)
+            if (conversationHistory.length > 6) {
+              conversationHistory = conversationHistory.slice(-6);
+            }
+            
+            // Guardar historial con manejo de errores
+            try {
+              localStorage.setItem('vitalcoach_conversation', JSON.stringify(conversationHistory));
+            } catch (saveError) {
+              console.warn('Error al guardar historial:', saveError);
+            }
+          }
+        }, 500);
+
+      } catch (error) {
+        console.error("=== ERROR COMPLETO ===");
+        console.error("Error type:", error.name);
+        console.error("Error message:", error.message);
+        console.error("Error stack:", error.stack);
+        console.error("URL utilizada:", N8N_WEBHOOK_URL);
+        
+        typing.style.display = 'none';
+        
+        let errorMessage = "🔧 Error de conexión: ";
+        if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+          errorMessage += "No se puede conectar al servidor. Verifica que esté funcionando y configurado correctamente.";
+        } else if (error.name === 'SyntaxError') {
+          errorMessage += "El servidor devolvió una respuesta inválida. Puede ser un problema temporal.";
+        } else if (error.message.includes('404')) {
+          errorMessage += "El endpoint no existe. Verifica la URL: " + N8N_WEBHOOK_URL;
+        } else if (error.message.includes('500')) {
+          errorMessage += "Error interno del servidor. Intenta de nuevo en unos momentos.";
+        } else if (error.message.includes('timeout')) {
+          errorMessage += "El servidor tardó demasiado en responder. Intenta de nuevo.";
+        } else if (error.message.includes('quota') || error.message.includes('too many requests')) {
+          errorMessage += "Se ha excedido el límite de requests de la API. Espera unos minutos e intenta de nuevo.";
+        } else {
+          errorMessage += error.message;
+        }
+        
+        addMessage(errorMessage, 'bot');
+        
+        // Agregar mensaje de debugging en la consola
+        addDebugInfo(error);
+        
+      } finally {
+        sendButton.disabled = false;
+        messageInput.focus();
+        isProcessing = false; // Permitir nuevos envíos
+      }
+    }
+
+    // Función para agregar información de debug
+    function addDebugInfo(error) {
+      const debugDiv = document.createElement('div');
+      debugDiv.className = 'error-message';
+      debugDiv.innerHTML = `
+        <strong>Información de debug:</strong><br>
+        URL: ${N8N_WEBHOOK_URL}<br>
+        Error: ${error.name} - ${error.message}<br>
+        <small>Abre las herramientas de desarrollador (F12) para más detalles</small>
+      `;
+      chat.appendChild(debugDiv);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    // Función para agregar mensajes al chat
+    function addMessage(text, sender) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${sender}-message`;
+      
+      const bubble = document.createElement('div');
+      bubble.className = 'message-bubble';
+      
+      // Procesar texto para enlaces y formato básico
+      const processedText = processMessageText(text);
+      bubble.innerHTML = processedText;
+      
+      messageDiv.appendChild(bubble);
+      chat.appendChild(messageDiv);
+      
+      // Scroll al final
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    // Función para procesar texto del mensaje
+    function processMessageText(text) {
+      // Convertir URLs en enlaces
+      text = text.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+      
+      // Convertir saltos de línea
+      text = text.replace(/\n/g, '<br>');
+      
+      // Negrita simple con **texto**
+      text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      
+      return text;
+    }
+
+    // Generar ID único para el usuario
+    function getUserId() {
+      let userId = localStorage.getItem('vitalcoach_user_id');
+      if (!userId) {
+        userId = 'user_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('vitalcoach_user_id', userId);
+      }
+      return userId;
+    }
+
+    // Función para test directo
+    async function testCurrentMessage() {
+      const message = messageInput.value.trim();
+      if (!message) return;
+      
+      console.log('=== INICIANDO TEST DIRECTO ===');
+      addMessage(`🧪 Testing: "${message}"`, 'user');
+      
+      const result = await testMessage(message);
+      
+      if (result.error) {
+        addMessage(`❌ Test falló: ${result.error}`, 'bot');
+      } else {
+        addMessage(`✅ Test Status: ${result.status}`, 'bot');
+        addMessage(`📝 Response: ${result.text.substring(0, 200)}...`, 'bot');
+      }
+    }
+
+    // Función para limpiar conversación
+    function clearConversation() {
+      conversationHistory = [];
+      localStorage.removeItem('vitalcoach_conversation');
+      
+      // Limpiar el chat visual
+      const messages = chat.querySelectorAll('.message, .error-message');
+      messages.forEach(msg => msg.remove());
+      
+      // Mostrar mensaje de confirmación
+      addMessage("Conversación limpiada. ¡Empecemos de nuevo! 🔄", 'bot');
+      
+      console.log('Conversación y historial limpiados');
+    }
+
+    // Inicialización
+    document.addEventListener('DOMContentLoaded', function() {
+      loadConversationHistory();
+      messageInput.focus();
+    });
+  </script>
+</body>
+</html>
